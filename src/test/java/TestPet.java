@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import static io.restassured.RestAssured.config;
 import static io.restassured.RestAssured.given; // função given
 import static org.hamcrest.Matchers.*;          // Classe de verificadores do Hamcrest
 
@@ -17,7 +18,8 @@ import static org.hamcrest.Matchers.*;          // Classe de verificadores do Ha
 public class TestPet {
     // 2.1 atributos
     static String ct = "application/json"; // content-type
-    static String uriPet = "https://petstore.swagger.io/v2/pet"; 
+    static String uriPet = "https://petstore.swagger.io/v2/pet";
+    static int petId = 173218101;
 
     // 2.2 funções e métodos
     // 2.2.1 funções e métodos comuns / uteis
@@ -35,8 +37,6 @@ public class TestPet {
         // carregar os dados do arquivo json do pet
         String jsonBody = lerArquivoJson("src/test/resources/json/pet1.json");
         
-        int petId = 173218101; // código esperado do pet
-
         // começa o teste via REST-assured
 
         given()                                 // Dado que
@@ -58,6 +58,33 @@ public class TestPet {
 
     }
 
+    @Test
+    public void testGetPet(){
+        // Configura
+        // Entrada - petId que está definido no nível da classe
+        // Saídas / Resultados Esperados
+        String petName = "Snoopy";
+        String categoryName = "cachorro";
+        String tagName = "vacinado";
+        
+        given()
+            .contentType(ct)
+            .log().all()
+            // quando é get ou delete não tem body
+        // Executa
+        .when()
+            .get(uriPet + "/" + petId)  // montar o endpoint da URI/<petId>
+        // Valida
+        .then()
+            .log().all()
+            .statusCode(200)
+            .body("name", is("Snoopy"))    // verifica se o nome é Snoopy
+            .body("id", is(petId))         // verifique o código do pet
+            .body("category.name", is("cachorro")) // se é cachorro
+            .body("tags[0].name", is("vacinado"))  // se está vacinado
+
+        ; // fim do given
+    }
     
 
 }
