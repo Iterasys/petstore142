@@ -8,12 +8,12 @@ import static org.hamcrest.Matchers.is;
 import org.junit.jupiter.api.Test;
 
 public class TestUser {
-    String ct = "application/json";
-    String uriUser = "https://petstore.swagger.io/v2/user";
-    String token;
+    static String ct = "application/json";
+    static String uriUser = "https://petstore.swagger.io/v2/user";
+    static String token;
         
     @Test 
-    public void testLogin(){
+    public static String testLogin(){
         // Configura
         String username = "charlie";
         String password = "abcdef";
@@ -40,5 +40,6 @@ public class TestUser {
         // extração
         token = resposta.jsonPath().getString("message").substring(23);
         System.out.println("Conteudo do Token: " + token);
+        return token;
     }
 }

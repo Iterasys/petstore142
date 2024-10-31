@@ -14,6 +14,11 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvFileSource;
+
+import com.google.gson.Gson;
+
 
 // 2 - classe
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class) // Ativa a ordenação
@@ -67,11 +72,12 @@ public class TestPet {
     @Test @Order(2)
     public void testGetPet(){
         // Configura
-        // Entrada e Saidas definidas no nível da classe
+        // Entrada e Saidas definidas no nível da classe     
          
         given()
             .contentType(ct)
             .log().all()
+            .header("", "api_key: " + TestUser.testLogin())
             // quando é get ou delete não tem body
         // Executa
         .when()
@@ -131,5 +137,54 @@ public class TestPet {
             .body("message", is(String.valueOf(petId)))
         ;
     }
+
+    // Data Driven Testing (DDT) / Teste Direcionado por Dados / Teste com Massa
+    // Teste com Json parametrizado
+
+    @ParameterizedTest @Order(5)
+    @CsvFileSource(resources = "/csv/petMassa.csv", numLinesToSkip = 1, delimiter = ',')
+    public void testPostPetDDT(
+        int petId,
+        String petName,
+        int catId,          
+        String catName,
+        String status1,
+        String status2
+    ) // fim dos parametros
+    { // inicio do código do método testPostPetDDT
+
+        // Criar a classe pet para receber os dados do csv
+        Pet pet = new Pet(); // instancia a classe User
+
+        pet.petId = petId;
+        pet.petName = petName;
+        pet.catId = catId;
+        pet.catName = catName;
+        pet.status = status1; // status inicial usado no Post = "available"
+        
+        // Criar um Json para o Body a ser enviado a partir da classe Pet e do CSV
+        Gson gson = new Gson(); // instancia a classe Gson como o objeto gson
+        String jsonBody = gson.toJson(pet);
+
+        given()
+            .contentType(ct)
+            .log().all()
+            .body(jsonBody)
+        .when()
+            .post(uriPet)
+        .then()
+            .log().all()
+            .statusCode(200)
+            .body("id", is(petId))
+            .body("name", is(petName))
+            .body("category.id", is(catId))
+            .body("category.name", is(catName))
+            .body("status", is(status1)) // inicial do Post
+
+        ;
+
+
+    }
+
 
 }
